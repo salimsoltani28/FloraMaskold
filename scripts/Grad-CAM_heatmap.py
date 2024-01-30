@@ -4,17 +4,24 @@ import numpy as np
 import cv2
 import os
 
+
 print(tf.__version__)
 
 #set the working directory to the folder where the script is located
 
-#os.chdir('/scratch1/ssoltani/workshop/11_FloraMask')
-# Load your trained model
-model = keras.models.load_model('weights.48-0.15.hdf5') 
+# Define the folder where your images are stored
+os.chdir('/scratch1/ssoltani/workshop/11_FloraMask')
+
+# Load the model
+model_path = 'checkpoints/1_CNN_window'  # Replace with your model folder path
+model = tf.keras.models.load_model(os.path.join(model_path, 'weights.48-0.15.hdf5')) 
 #open a model using tensorflow 
 #model = tf.keras.models.load_model('weights.48-0.15.hdf5')
 #get me a model summary here
 #model.summary()
+
+# Load the image you want to visualize
+#img = cv2.imread('dataset/1_example_photos_iNat/Acer pseudoplatanus0000018.jpg')
 
 # Load the image you want to visualize
 #img = cv2.imread('data/1_example_photos_iNat/Acer pseudoplatanus0000018.jpg')
@@ -33,7 +40,7 @@ def load_and_process(img_path):
     return img_array
 
 # Load and process the image
-img_path = 'data/1_example_photos_iNat/Acer pseudoplatanus0000018.jpg'
+img_path = 'dataset/1_example_photos_iNat/Acer pseudoplatanus0000018.jpg'
 img = load_and_process(img_path)
 # Define a function to calculate the Grad-CAM heatmap for a given image and model
 def grad_cam(model: tf.keras.Model, img: tf.Tensor, layer_name: str) -> np.ndarray:

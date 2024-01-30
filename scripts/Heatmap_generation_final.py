@@ -8,16 +8,16 @@ import os
 import csv
 
 # Define the folder where your images are stored
-#os.chdir('/scratch1/ssoltani/workshop/11_FloraMask')
-images_folder = 'data/1_example_photos_iNat'  # Replace with your images folder path
+os.chdir('/scratch1/ssoltani/workshop/11_FloraMask')
+images_folder = 'dataset/1_example_photos_iNat'  # Replace with your images folder path
 heatmaps_folder = 'dataset/Mask'  # Replace with your desired heatmaps folder path
 
 # Create the heatmaps folder if it doesn't exist
 os.makedirs(heatmaps_folder, exist_ok=True)
 
 # Load the model
-#model_path = 'checkpoints/1_CNN_window'  # Replace with your model folder path
-model = tf.keras.models.load_model('weights.48-0.15.hdf5')
+model_path = 'checkpoints/1_CNN_window'  # Replace with your model folder path
+model = tf.keras.models.load_model(os.path.join(model_path, 'weights.48-0.15.hdf5')) 
 
 # Modify the model to remove the softmax activation on the last layer
 model.layers[-1].activation = None
@@ -116,11 +116,6 @@ for img_name in os.listdir(images_folder):
         coords = save_and_display_gradcam(img_path, heatmap)
         results.append([img_name, coords[0], coords[1]])
 
-# Save the coordinates to a CSV file
-csv_path = os.path.join(heatmaps_folder, 'top_pixel_coords.csv')
-with open(csv_path, 'w', newline='') as csv_file:
-    writer = csv.writer(csv_file)
-    writer.writerow(['Image', 'X', 'Y'])
-    writer.writerows(results)
+
 
 print(f"Results have been saved to {csv_path}")
