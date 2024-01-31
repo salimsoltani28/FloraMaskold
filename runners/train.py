@@ -6,7 +6,21 @@ from torchvision import datasets, transforms, models
 import random
 import os
 import yaml
+import numpy as np 
+import sys
 
+current_script_directory = os.path.dirname(os.path.realpath(__file__))
+# Get the parent directory
+parent_directory = os.path.abspath(os.path.join(current_script_directory, os.pardir))
+sys.path.append(parent_directory)
+
+from flora_utils.flora_utils.src.preprocessing import get_data_loaders
+
+# To reprocuding the data splitting
+
+seed = 42
+torch.manual_seed(seed)
+np.random.seed(seed)
 
 # Load training configuration
 
@@ -29,8 +43,15 @@ transform = transforms.Compose([
 ])
 
 # Download or prepare your custom dataset and create DataLoader
-root_dir = train_config['raw_data_dir']
-whole_data = datasets.ImageFolder(root=root_dir, transform=transform)
-# Data Labelling
-labels = whole_data.targets
-labels
+dataset_path = train_config['raw_data_dir']
+
+# Split the data:
+train_ratio = train_config['train_ratio']
+flip_p = train_config['flip_p']
+batch_size = train_config['batch_size']
+
+(train_loader, train_data_len) = get_data_loaders(data_dir=dataset_path, batch_size=batch_size, train=True, flip_p=flip_p, image_size=image_size, train_ratio=train_ratio)
+
+(val_loader, test_loader, valid_data_len, test_data_len) = get_data_loaders(data_dir=dataset_path, batch_size=batch_size, train=False, flip_p=flip_p, image_size=image_size, train_ratio=train_ratio)
+
+# classes = get_classes(dataset_path)
