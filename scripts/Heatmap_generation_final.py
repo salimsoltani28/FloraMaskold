@@ -8,9 +8,9 @@ import os
 import csv
 
 # Define the folder where your images are stored
-os.chdir('/scratch1/ssoltani/workshop/11_FloraMask')
-images_folder = 'dataset/1_example_photos_iNat'  # Replace with your images folder path
-heatmaps_folder = 'dataset/Mask'  # Replace with your desired heatmaps folder path
+os.chdir('/home/ms2487/workshop/Flora_Mask/data/')
+images_folder = 'image/'  # Replace with your images folder path
+heatmaps_folder = 'heatmap'  # Replace with your desired heatmaps folder path
 
 # Create the heatmaps folder if it doesn't exist
 os.makedirs(heatmaps_folder, exist_ok=True)
