@@ -8,15 +8,15 @@ import os
 import csv
 
 # Define the folder where your images are stored
-os.chdir('/home/ms2487/workshop/Flora_Mask/data/')
-images_folder = 'image/'  # Replace with your images folder path
-heatmaps_folder = 'heatmap'  # Replace with your desired heatmaps folder path
+os.chdir('/home/ms2487/workshop/Flora_Mask/')
+images_folder = 'data/images/'  # Replace with your images folder path
+heatmaps_folder = 'data/Mask'  # Replace with your desired heatmaps folder path
 
 # Create the heatmaps folder if it doesn't exist
 os.makedirs(heatmaps_folder, exist_ok=True)
-
+os.getcwd()
 # Load the model
-model_path = 'checkpoints/1_CNN_window'  # Replace with your model folder path
+model_path = 'checkpoint/'  # Replace with your model folder path
 model = tf.keras.models.load_model(os.path.join(model_path, 'weights.48-0.15.hdf5')) 
 
 # Modify the model to remove the softmax activation on the last layer
@@ -118,4 +118,3 @@ for img_name in os.listdir(images_folder):
 
 
 
-print(f"Results have been saved to {csv_path}")
