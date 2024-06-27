@@ -1,0 +1,71 @@
+data:
+  batch_size: 1024 #in case of multiprocessing, this is single-worker batch size
+  pin_memory: true
+  num_workers: 2
+  save_dataset: False
+  shuffle_buffer: 10000
+  seed: 0
+  meta:
+    tryGBIF:
+      image_dir: '/mnt/gsdata/projects/panops/Labeled_data_seprated_in_Folder/image_all'
+      mask_dir: '/mnt/gsdata/projects/panops/Labeled_data_seprated_in_Folder/image_mask_all'
+    #list of all training datasets
+  train:
+    - tryGBIF
+
+    #list of of evaluation datasets, cross data evaluation can be tested later
+  val:
+    - tryGBIF
+
+model:
+  type: MaskFormer2
+  
+train:
+  start_epoch: 0
+  epochs: 100
+  # Need to check below parameters
+  warmup_epochs: 20
+  weight_decay: 0.05
+  warmup_lr: 0.001
+  min_lr: 0.0001
+  
+  clip_grad: 5.0 
+
+  lr_scheduler:
+    name: cosine
+    cycle_limit: 1
+    decay_epochs: 80
+
+  optimizer:
+    name: adamw
+    eps: 1e-8
+    betas: [0.9, 0.999]
+    base_lr: 0.0005
+
+
+evaluate:
+  #This check would disable loading of optimizer and scheduler if set to true
+  pre_eval: false # Eval before training starts, useful for debugging
+  eval_only: false
+  eval_freq: 1
+  save_best: true
+
+checkpoint:
+  auto_resume: true
+  resume: ''
+  loadonlymodel: false
+  evaluate_checkpoint: false
+  freq: 1
+  max_kept: -1
+  save_freq: 10
+  
+
+model_name: '' # display name in the logger
+output: ???
+wandb_output: ''
+tag: default
+print_freq: 1
+seed: 0
+wandb: false
+local_rank: ???
+vis: []
