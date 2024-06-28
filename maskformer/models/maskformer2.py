@@ -1,9 +1,7 @@
 import torch
 import torch.nn as nn
 from .builder import MODELS
-from utils import get_logger, load_class_from_config
-from typing import Optional
-import torch
+from utils import get_logger
 from transformers import MaskFormerForInstanceSegmentation
 
 @MODELS.register_module()
@@ -29,8 +27,11 @@ class MaskFormer2(nn.Module):
                                                           id2label=id2label,
                                                           ignore_mismatched_sizes=True)
 
-    def forward(self, batch):
-        outputs = self.model(batch["pixel_values"],
-                class_labels=batch["class_labels"],
-                mask_labels=batch["mask_labels"])
+    def forward(self, batch, device=None):
+        if device is None:
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        outputs = self.model(batch["pixel_values"].to(device),
+                mask_labels=[labels.to(device) for labels in batch["mask_labels"]],
+                class_labels=[labels.to(device) for labels in batch["class_labels"]]
+                )
         return outputs

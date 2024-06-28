@@ -39,33 +39,39 @@ def collate_fn(batch, preprocessor=get_preprocessor()):
         return_tensors="pt",
     )
 
-    batch["original_images"] = inputs[2]
-    batch["original_segmentation_maps"] = inputs[3]
+    # batch["original_images"] = inputs[4]
+    # batch["original_segmentation_maps"] = inputs[5]
     
     return batch
 
 def build_img_transform():
     # Define transformations
-    ADE_MEAN = np.array([123.675, 116.280, 103.530]) / 255
-    ADE_STD = np.array([58.395, 57.120, 57.375]) / 255
-
-    train_transform = A.Compose([
-        A.LongestMaxSize(max_size=1333),
-        A.RandomCrop(width=512, height=512),
-        A.HorizontalFlip(p=0.5),
-        A.Normalize(mean=ADE_MEAN, std=ADE_STD),
+    transform = transforms.Compose([
+        transforms.Resize((256, 256)),  # Resize to the desired size
+        transforms.ToTensor()           # Convert to PyTorch tensor
     ])
+    return transform
+    # Define transformations
+    # ADE_MEAN = np.array([123.675, 116.280, 103.530]) / 255
+    # ADE_STD = np.array([58.395, 57.120, 57.375]) / 255
 
-    test_transform = A.Compose([
-        A.Resize(width=512, height=512),
-        A.Normalize(mean=ADE_MEAN, std=ADE_STD),
+    # train_transform = A.Compose([
+    #     A.LongestMaxSize(max_size=1333),
+    #     A.RandomCrop(width=512, height=512),
+    #     A.HorizontalFlip(p=0.5),
+    #     A.Normalize(mean=ADE_MEAN, std=ADE_STD),
+    # ])
 
-    ])
+    # test_transform = A.Compose([
+    #     A.Resize(width=512, height=512),
+    #     A.Normalize(mean=ADE_MEAN, std=ADE_STD),
+
+    # ])
     
-    return train_transform, test_transform
+    # return train_transform, test_transform
 
 def build_dataset(config):
-    img_transform, _ = build_img_transform()
+    img_transform = build_img_transform()
     # Load dataset
     dataset = SegmentationDataset(config.image_dir, config.mask_dir, transform=img_transform)
     print('dataset len: ', len(dataset))
@@ -80,7 +86,7 @@ def build_loader(config):
     data_loader_train = DataLoader(
         dataset_train,
         batch_size=config.batch_size,
-        num_workers=8,
+        num_workers=1, #TODO: Change to 4 or 8 once you loading and training
         pin_memory=True,
         persistent_workers=True,
         collate_fn=collate_fn 
