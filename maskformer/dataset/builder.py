@@ -1,5 +1,6 @@
-#THid file builds dataloader for the dataset
+# This file builds dataloader for the dataset
 import random
+import torch
 import warnings
 import numpy as np
 from torchvision import transforms
@@ -39,9 +40,6 @@ def collate_fn(batch, preprocessor=get_preprocessor()):
         return_tensors="pt",
     )
 
-    # batch["original_images"] = inputs[4]
-    # batch["original_segmentation_maps"] = inputs[5]
-    
     return batch
 
 def build_img_transform():
@@ -51,44 +49,42 @@ def build_img_transform():
         transforms.ToTensor()           # Convert to PyTorch tensor
     ])
     return transform
-    # Define transformations
-    # ADE_MEAN = np.array([123.675, 116.280, 103.530]) / 255
-    # ADE_STD = np.array([58.395, 57.120, 57.375]) / 255
-
-    # train_transform = A.Compose([
-    #     A.LongestMaxSize(max_size=1333),
-    #     A.RandomCrop(width=512, height=512),
-    #     A.HorizontalFlip(p=0.5),
-    #     A.Normalize(mean=ADE_MEAN, std=ADE_STD),
-    # ])
-
-    # test_transform = A.Compose([
-    #     A.Resize(width=512, height=512),
-    #     A.Normalize(mean=ADE_MEAN, std=ADE_STD),
-
-    # ])
-    
-    # return train_transform, test_transform
 
 def build_dataset(config):
     img_transform = build_img_transform()
     # Load dataset
-    dataset = SegmentationDataset(config.image_dir, config.mask_dir, transform=img_transform)
+    dataset = SegmentationDataset(config['data']['image_dir'], config['data']['mask_dir'], transform=img_transform)
     print('dataset len: ', len(dataset))
     return dataset
 
 def build_loader(config):
+    dataset = build_dataset(config=config)
+    print('successfully built dataset')
+
+    # Split dataset into training and validation sets
+    train_indices, val_indices = train_test_split(list(range(len(dataset))), test_size=0.2, random_state=42)
     
-    #local_rank = dist.get_rank() % torch.cuda.device_count() if dist.is_initialized() else 0
-    dataset_train = build_dataset(config=config)
-    print('successfully build train dataset')
+    # Create Subsets
+    train_subset = torch.utils.data.Subset(dataset, train_indices)
+    val_subset = torch.utils.data.Subset(dataset, val_indices)
     
+    # DataLoaders
     data_loader_train = DataLoader(
-        dataset_train,
-        batch_size=config.batch_size,
-        num_workers=1, #TODO: Change to 4 or 8 once you loading and training
-        pin_memory=True,
+        train_subset,
+        batch_size=config['data']['batch_size'],
+        num_workers=config['data']['num_workers'],  # Adjusted from config
+        pin_memory=config['data']['pin_memory'],
         persistent_workers=True,
-        collate_fn=collate_fn 
+        collate_fn=collate_fn
     )
-    return dataset_train, data_loader_train
+    
+    data_loader_val = DataLoader(
+        val_subset,
+        batch_size=config['data']['batch_size'],
+        num_workers=config['data']['num_workers'],  # Adjusted from config
+        pin_memory=config['data']['pin_memory'],
+        persistent_workers=True,
+        collate_fn=collate_fn
+    )
+    
+    return train_subset, val_subset, data_loader_train, data_loader_val

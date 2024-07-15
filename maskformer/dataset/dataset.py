@@ -45,7 +45,7 @@ class SegmentationDataset(Dataset):
         #make it a png
         mask_name = mask_name.replace('.jpg', '.png')
         
-        print(f'idx: {idx} img name :{img_name} mask_name :{mask_name}')
+        #print(f'idx: {idx} img name :{img_name} mask_name :{mask_name}')
         
         img_path = os.path.join(self.image_dir, img_name)
         mask_path = os.path.join(self.mask_dir, mask_name)
