@@ -1,12 +1,12 @@
 data:
-  batch_size: 2 #in case of multiprocessing, this is single-worker batch size
+  batch_size: 20 #in case of multiprocessing, this is single-worker batch size
   pin_memory: true
-  num_workers: 1
+  num_workers: 8
   save_dataset: False
   shuffle_buffer: 10000
   seed: 0
-  image_dir: '/mnt/gsdata/projects/panops/Labeled_data_seprated_in_Folder/image_all'
-  mask_dir: '/mnt/gsdata/projects/panops/Labeled_data_seprated_in_Folder/image_mask_all'
+  image_dir: '/mnt/gsdata/users/soltani/Workshop_home_fromSSD2/Workshop_home/4_Mask2Former/data/image_all'
+  mask_dir: '/mnt/gsdata/users/soltani/Workshop_home_fromSSD2/Workshop_home/4_Mask2Former/data/image_mask_all'
 
 model:
   type: MaskFormer2
@@ -19,6 +19,7 @@ train:
   weight_decay: 0.05
   warmup_lr: 0.001
   min_lr: 0.0001
+  base_lr: 0.0005  # This is the base learning rate for the model
   
   clip_grad: 5.0 
 
@@ -49,6 +50,7 @@ checkpoint:
   freq: 1
   max_kept: -1
   save_freq: 10
+  checkpoint_path: '/mnt/gsdata/users/soltani/Workshop_home_fromSSD2/Workshop_home/4_Mask2Former/2_MyDiv/checkpoints/best_model_checkpoint2.pth' 
   
 
 model_name: '' # display name in the logger
