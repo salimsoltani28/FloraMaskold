@@ -1,5 +1,6 @@
 import torch
 import argparse
+import gc   
 import torch.nn as nn
 from tqdm.auto import tqdm
 from collections import defaultdict
@@ -78,10 +79,9 @@ def train_one_epoch(config, model, data_loader, optimizer, epoch, lr_scheduler, 
 
         batch_size = config.data.batch_size
         #print device for model
-        logger.debug(f'model device:{next(model.parameters()).device}')
-        losses = model(samples, device)
+        outputs = model(samples, device)
 
-        loss, log_vars = parse_losses(losses)
+        loss = outputs.loss
         loss.backward()
         
         if config.train.clip_grad > 0:
@@ -93,10 +93,13 @@ def train_one_epoch(config, model, data_loader, optimizer, epoch, lr_scheduler, 
         lr_scheduler.step_update(epoch*num_steps + idx)
 
         torch.cuda.synchronize()
+        # Monitor memory usage
+        logger.debug(f"GPU Memory Allocated: {torch.cuda.memory_allocated()}")
+        logger.debug(f"GPU Memory Cached: {torch.cuda.memory_reserved()}")
+        
 
         loss_meter.update(loss.item(), batch_size)
-        for loss_name in log_vars:
-            log_vars_meters[loss_name].update(log_vars[loss_name], batch_size)
+        log_vars_meters['train_loss'].update(loss.item(), batch_size)
         norm_meter.update(grad_norm)
         batch_time.update(time.time() - end)
         end = time.time()
@@ -220,6 +223,7 @@ def train(cfg):
                 'epoch/test_loss': loss,
             })
             wandb.log(log_stat)
+        gc.collect()
 
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
@@ -242,11 +246,11 @@ def validate(config, data_loader, model):
     logger.info('Building Inference model for evaluation')
 
     for idx, samples in enumerate(data_loader):
+        torch.cuda.empty_cache()
         # compute output
-        output = model(**samples, train=False) 
+        output = model(**samples, train=False)
         # measure loss
-        loss = output['loss']
-        loss = reduce_tensor(loss)
+        loss = output.loss
         loss_meter.update(loss.item(), 1)
         
         #measure elapsed time
