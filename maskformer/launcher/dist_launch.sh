@@ -2,7 +2,7 @@
 SCRIPT=$1
 CONFIG=$2
 GPUS=$3
-PORT=${PORT:-29400}
+PORT=${PORT:-29403}
 
 # CONDA_PATH="/home/as2114/ls"
 source "$CONDA_PATH/etc/profile.d/conda.sh"

@@ -1,0 +1,2 @@
+pip install argparse==1.4.0
+pip install omegaconf, wandb

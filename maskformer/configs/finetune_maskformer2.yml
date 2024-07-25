@@ -1,12 +1,14 @@
 data:
-  batch_size: 20 #in case of multiprocessing, this is single-worker batch size
+  batch_size: 32 #in case of multiprocessing, this is single-worker batch size
   pin_memory: true
-  num_workers: 8
+  num_workers: 1
   save_dataset: False
   shuffle_buffer: 10000
   seed: 0
-  image_dir: '/mnt/gsdata/users/soltani/Workshop_home_fromSSD2/Workshop_home/4_Mask2Former/data/image_all'
-  mask_dir: '/mnt/gsdata/users/soltani/Workshop_home_fromSSD2/Workshop_home/4_Mask2Former/data/image_mask_all'
+  image_dir : '/mnt/gsdata/projects/panops/Labeled_data_seprated_in_Folder/image_all'
+  mask_dir: '/mnt/gsdata/projects/panops/Labeled_data_seprated_in_Folder/image_mask_all'
+  # image_dir: '/mnt/gsdata/users/soltani/Workshop_home_fromSSD2/Workshop_home/4_Mask2Former/data/image_all'
+  # mask_dir: '/mnt/gsdata/users/soltani/Workshop_home_fromSSD2/Workshop_home/4_Mask2Former/data/image_mask_all'
 
 model:
   type: MaskFormer2
@@ -27,6 +29,11 @@ train:
     name: cosine
     cycle_limit: 1
     decay_epochs: 80
+
+  finetune:
+    #If finetune is true, we load the model from the resume path and train few layers
+    img_encoder_params_prefix: ['dummys']
+
 
   optimizer:
     name: adamw
@@ -50,7 +57,6 @@ checkpoint:
   freq: 1
   max_kept: -1
   save_freq: 10
-  checkpoint_path: '/mnt/gsdata/users/soltani/Workshop_home_fromSSD2/Workshop_home/4_Mask2Former/2_MyDiv/checkpoints/best_model_checkpoint2.pth' 
   
 
 model_name: '' # display name in the logger
@@ -59,6 +65,6 @@ wandb_output: ''
 tag: default
 print_freq: 1
 seed: 0
-wandb: false
+wandb: true
 local_rank: ???
 vis: []
