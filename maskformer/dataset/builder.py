@@ -72,7 +72,7 @@ def build_loader(config):
     data_loader_train = DataLoader(
         train_subset,
         batch_size=config['data']['batch_size'],
-        num_workers=config['data']['num_workers'],  # Adjusted from config
+        num_workers=4,  # Adjusted from config
         pin_memory=config['data']['pin_memory'],
         persistent_workers=True,
         collate_fn=collate_fn
@@ -81,7 +81,7 @@ def build_loader(config):
     data_loader_val = DataLoader(
         val_subset,
         batch_size=config['data']['batch_size'],
-        num_workers=config['data']['num_workers'],  # Adjusted from config
+        num_workers=4,  # Adjusted from config
         pin_memory=config['data']['pin_memory'],
         persistent_workers=True,
         collate_fn=collate_fn
