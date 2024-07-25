@@ -4,7 +4,11 @@ import gc
 import torch.nn as nn
 from tqdm.auto import tqdm
 from collections import defaultdict
-from utils import (get_config, get_logger, build_optimizer, build_scheduler, auto_resume_helper, save_checkpoint, get_grad_norm, parse_losses, reduce_tensor)
+from utils import (get_config, get_logger, 
+                   build_optimizer, build_scheduler, 
+                   auto_resume_helper, save_checkpoint,
+                   get_grad_norm, parse_losses, reduce_tensor,
+                   load_checkpoint)
 from dataset import build_loader
 from models import build_model
 import torch.distributed as dist
@@ -191,6 +195,25 @@ def train(cfg):
             logger.info(f'no checkpoint found in {cfg.output}, ignoring auto resume')
 
     metrics = {'min_loss': float('inf'), 'best_epoch': -1}
+    
+    if cfg.checkpoint.resume:
+        metrics = load_checkpoint(cfg, model_without_ddp, optimizer, lr_scheduler)
+        min_loss = metrics['min_loss']
+        if cfg.checkpoint.evaluate_checkpoint:
+            if val_loader is not None:
+                loss = validate(cfg, val_loader, model, device=device)
+                metrics['min_loss'] = min(min_loss, loss)
+            dist.barrier()
+
+            if wandb is not None:
+                log_stat = {}
+                log_stat.update({
+                    'epoch/epoch': 0,
+                    'epoch/test_loss': loss,
+                })
+                wandb.log(log_stat)
+ 
+
     start_time = time.time()
     
     for epoch in range(cfg.train.start_epoch, cfg.train.epochs):
@@ -207,7 +230,7 @@ def train(cfg):
         logger.info(f'Avg loss of the network on the {len(train_subset)} train images: {loss_train:.2f}')
         # evaluate
         if (epoch % cfg.evaluate.eval_freq == 0 or epoch == (cfg.train.epochs - 1)):
-            loss = validate(cfg, val_loader, model)           
+            loss = validate(cfg, val_loader, model, device=device)           
             dist.barrier()
             if cfg.evaluate.save_best and dist.get_rank() == 0 and loss < metrics['min_loss']:
                 metrics['min_loss'] = min(metrics['min_loss'], loss)
@@ -234,7 +257,7 @@ def train(cfg):
 
 
 @torch.no_grad()
-def validate(config, data_loader, model):
+def validate(config, data_loader, model, device):
     logger = get_logger()
     dist.barrier()
     model.eval()
@@ -248,7 +271,7 @@ def validate(config, data_loader, model):
     for idx, samples in enumerate(data_loader):
         torch.cuda.empty_cache()
         # compute output
-        output = model(**samples, train=False)
+        output = model(samples, device)
         # measure loss
         loss = output.loss
         loss_meter.update(loss.item(), 1)

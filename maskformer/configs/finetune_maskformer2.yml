@@ -1,5 +1,5 @@
 data:
-  batch_size: 32 #in case of multiprocessing, this is single-worker batch size
+  batch_size: 24 #in case of multiprocessing, this is single-worker batch size
   pin_memory: true
   num_workers: 1
   save_dataset: False
@@ -44,7 +44,7 @@ train:
 
 evaluate:
   #This check would disable loading of optimizer and scheduler if set to true
-  pre_eval: false # Eval before training starts, useful for debugging
+  #pre_eval: false # Not yet implemented Eval before training starts, useful for debugging
   eval_only: false
   eval_freq: 1
   save_best: true
